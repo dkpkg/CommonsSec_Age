@@ -44,9 +44,9 @@ none). Archive internal layouts were inspected (`tar -tf`) to get the declared
 4. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
    (`dksdk-coder/skills/manage-signing-recipients/SKILL.md`), run
    `dksdk-coder/scripts/prepare-dkpkg-version.ps1 -Package CommonsSec_Age -Spdx
-   BSD-3-Clause`. For this package's OWN first prepare-version, hand-install `age`
-   (winget / scoop / GitHub release) so the driver finds it on PATH -- see the
-   bootstrap note below.
+   BSD-3-Clause`. The driver materializes `age` from this checkout via `get-asset`
+   (no hand-install needed even for this package's own first prepare-version -- see
+   the age-sourcing note below).
 5. **Distribute -- this is where `Age.values.lua` is first exercised.** A brand-new
    local rule is NOT runnable via a bare `run-function`; it becomes runnable only
    after the first `distribute` build. `dk0 distribute` (the `diskuv/dk-distribute`
@@ -68,18 +68,17 @@ Re-pin by re-running `gh api repos/<owner>/<repo>/releases/latest --jq
 '.assets[] | {name, size, digest}'` for each tool, updating the three bundle
 files' versions/paths/checksums and `Age.values.lua`'s `asset_for` + versions.
 
-## Bootstrap (one-time, for the FIRST release only)
+## Bootstrap / age sourcing (no hard cycle)
 
 Building/releasing this package uses signify, not age (dk0 does the distribution
 signing), so nothing about producing CommonsSec_Age needs age at build time. The
-signing driver `prepare-dkpkg-version.ps1` materializes `age` by running
-`CommonsSec_Age.Age.Files` via dk0 -- but a brand-new local rule is only runnable
-**after the package has been distributed once** (empirically, a bare
-`run-function` cannot build a never-distributed rule; a released package resolves
-via `dk0 add github-l2 dkpkg/CommonsSec_Age`). So:
+signing driver `prepare-dkpkg-version.ps1` materializes `age` with `dk0 get-asset`
+(each Windows zip auto-extracted into a per-tool subdir; plugin dirs put on PATH).
+**Validated:** `get-asset` reads bundle data and works from a local checkout before
+the package is released, so even CommonsSec_Age's own first `prepare-version` gets
+its `age` from this checkout -- no hand-install.
 
-- **Steady state (CommonsSec_Age released):** no `age` install -- the driver
-  materializes it from the released package.
-- **Bootstrap (CommonsSec_Age's own first prepare-version, and any package
-  prepared before CommonsSec_Age is first released):** hand-install `age` (+ the
-  two plugins) so the driver finds them on PATH. This is unavoidable exactly once.
+Note the distinction: the module's `Files` **rule** does NOT resolve pre-release
+(a fresh rule needs the first `distribute` build; see step 5), so the driver
+deliberately uses `get-asset`, not `run-function`. A hand-installed `age` is the
+fallback only when no CommonsSec_Age checkout is available at all.
