@@ -8,11 +8,12 @@ per-ABI prebuilt binaries.
 
 It exists to give the dkpkg **signing** flow pinned, reproducible age tooling: the
 maintainer's `prepare-dkpkg-version.ps1` encrypts each package's signing transcript
-to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). That
-driver materializes `age` from this package on demand (`dk0 run-rule
-CommonsSec_Age.Age.Files`), even before it is released via a local checkout with
-`--trust-local-package`; a hand-installed `age` is only a fallback for the window
-before the module is validated.
+to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). Once
+this package is released, that driver materializes `age` from it on demand (`dk0
+add github-l2 dkpkg/CommonsSec_Age` + `run-function CommonsSec_Age.Age.Files`), so
+no separate `age` install is needed. A hand-installed `age` is required only for
+the one-time bootstrap (this package's own first release), because a
+never-distributed rule cannot be run.
 
 Status: **authored, pending dk0 validation + release.** The three bundles carry
 real, GitHub-API-verified SHA-256/size pins (age 1.3.1, age-plugin-yubikey 0.5.1,

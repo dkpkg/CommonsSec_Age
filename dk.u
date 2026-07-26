@@ -29,3 +29,13 @@ BSD-3-Clause AND Apache-2.0 AND MIT
 
 <!-- No `## Assets` section is needed: the Age module reads only the three bundles
      (Age / AgePluginYubikey / AgePluginFido2Hmac), not a repo-local asset. -->
+
+  %% import { type="github-l2", repo="dkpkg/CommonsBase_Std" }
+  'import'
+  'github-l2'
+  { {
+      'CommonsBase_Std', '2.6.20260723055125', {
+        'blake2b-256:e98f3024a71bc5b6b22ca624a2c0b0a8dff5c8346d2e1396c137f2a380505285',
+        'sha256:972d2bf05f2a369731458c78f692eb0763d872a10718ebfc3cc28de53be6bf60',
+        'sha1:7b7908b4a94dadf04d4b85b5223ea660370fd9ec'
+      } } }

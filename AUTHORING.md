@@ -37,29 +37,30 @@ none). Archive internal layouts were inspected (`tar -tf`) to get the declared
    dkpkg package).
 2. **Workspace**: `dk0 add github-l2 dkpkg/CommonsBase_Std` then `dk0 update` to
    fill `dk.u`'s `## workspace` block and `etc/dk/i/*.values.json`.
-3. **Validate the module (first pass)** — this is where `Age.values.lua` gets
-   proven; expect to adjust it:
-   - `dk0 -I etc/dk/v --trust-local-package CommonsSec_Age get-bundle
-     CommonsSec_Age.Age.Bundle@1.3.1 -d target/agebundle` (repeat for the two
-     plugin bundles);
-   - `dk0 -I etc/dk/v --trust-local-package CommonsSec_Age run-rule
-     CommonsSec_Age.Age.Files@1.3.1 -d target/age slot=Release.Windows_x86_64`,
-     then run `target/age/age/age.exe --version`.
-   - Note: the Darwin binaries extract without +x (reproducible-zip limitation);
-     if `run`/consumers need them executable, add a chmod continuation to
-     `rules.Files` as `SDK.values.lua`'s `workaround_make_dotnet_executable` does.
-     The Windows host (the only slot the signing flow strictly needs) is unaffected.
-4. **Distribution value-ids**: let dk0 record the `\dk.object(...)` lines in
-   `dist/any.u` during the build.
-5. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
+3. **Bundles are already validated** (done): `dk0 -I etc/dk/v
+   --trust-local-package CommonsSec_Age get-bundle CommonsSec_Age.Age.Bundle@1.3.1
+   -d target/agebundle` (and the two plugin bundles) all download the real
+   archives and verify the pinned SHA-256. Re-run if you re-pin.
+4. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
    (`dksdk-coder/skills/manage-signing-recipients/SKILL.md`), run
    `dksdk-coder/scripts/prepare-dkpkg-version.ps1 -Package CommonsSec_Age -Spdx
-   BSD-3-Clause`. The driver materializes `age` from this very package (step 3
-   above validates that it can), so no separate `age` install is needed. Only if
-   the module is not yet validated, hand-install `age` (winget / scoop / GitHub
-   release) as a fallback so the driver finds it on PATH.
+   BSD-3-Clause`. For this package's OWN first prepare-version, hand-install `age`
+   (winget / scoop / GitHub release) so the driver finds it on PATH -- see the
+   bootstrap note below.
+5. **Distribute -- this is where `Age.values.lua` is first exercised.** A brand-new
+   local rule is NOT runnable via a bare `run-function`; it becomes runnable only
+   after the first `distribute` build. `dk0 distribute` (the `diskuv/dk-distribute`
+   CI action, per `.github/workflows/distribute-0.1.yml`) evaluates `dist/any.u`,
+   runs `CommonsSec_Age.Age.Files` per ABI, records the `\dk.object(...)` value-ids
+   in `dist/any.u`, and produces `dk-dist/`. **Expect to fix `Age.values.lua` here**
+   (e.g. the Darwin binaries extract without +x -- reproducible-zip limitation; if
+   consumers need them executable, add a chmod continuation to `rules.Files` as
+   `SDK.values.lua`'s `workaround_make_dotnet_executable` does; the Windows host,
+   the only slot the signing flow strictly needs, is unaffected).
 6. **Release + CI validation**: tag `0.1.0`; validate via
-   `dksdk-coder:github-actions-validation`.
+   `dksdk-coder:github-actions-validation`. After release, `dk0 add github-l2
+   dkpkg/CommonsSec_Age` makes `Age.Files` runnable for consumers (and for the
+   signing driver's auto-materialize).
 
 ## Refresh (later versions)
 
@@ -67,12 +68,18 @@ Re-pin by re-running `gh api repos/<owner>/<repo>/releases/latest --jq
 '.assets[] | {name, size, digest}'` for each tool, updating the three bundle
 files' versions/paths/checksums and `Age.values.lua`'s `asset_for` + versions.
 
-## No hard bootstrap cycle
+## Bootstrap (one-time, for the FIRST release only)
 
-There is **no** chicken-and-egg requiring a hand-installed `age`. Building and
-releasing this package uses signify, not age (dk0 does the distribution signing).
-And `prepare-dkpkg-version.ps1` materializes `age` from this package via
-`dk0 run-rule ...Files` even before it is released (local checkout +
-`--trust-local-package`), so its own `prepare-version` can use it. Hand-installing
-`age` is only a fallback for the window where `Age.values.lua` has not yet been
-validated by a dk0 build.
+Building/releasing this package uses signify, not age (dk0 does the distribution
+signing), so nothing about producing CommonsSec_Age needs age at build time. The
+signing driver `prepare-dkpkg-version.ps1` materializes `age` by running
+`CommonsSec_Age.Age.Files` via dk0 -- but a brand-new local rule is only runnable
+**after the package has been distributed once** (empirically, a bare
+`run-function` cannot build a never-distributed rule; a released package resolves
+via `dk0 add github-l2 dkpkg/CommonsSec_Age`). So:
+
+- **Steady state (CommonsSec_Age released):** no `age` install -- the driver
+  materializes it from the released package.
+- **Bootstrap (CommonsSec_Age's own first prepare-version, and any package
+  prepared before CommonsSec_Age is first released):** hand-install `age` (+ the
+  two plugins) so the driver finds them on PATH. This is unavoidable exactly once.

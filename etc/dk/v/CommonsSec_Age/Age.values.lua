@@ -1,8 +1,8 @@
 -- CommonsSec_Age.Age -- materialize age + its YubiKey/passkey plugins for a slot.
 --
--- Usage:
+-- Usage (after the package has been distributed once; see AUTHORING.md):
 --   ./dk0 -I etc/dk/v --trust-local-package CommonsSec_Age \
---     run-rule CommonsSec_Age.Age.Files@1.3.1 -d target/age slot=Release.Windows_x86_64
+--     run-function CommonsSec_Age.Age.Files@1.3.1 -d target/age slot=Release.Windows_x86_64
 --   ./dk0 -I etc/dk/v --trust-local-package CommonsSec_Age \
 --     run CommonsSec_Age.Age.Age@1.3.1 'args[]=--version'
 --
@@ -10,10 +10,16 @@
 -- bundles three upstreams (age, age-plugin-yubikey, age-plugin-fido2-hmac) into
 -- one slot directory. Supported slots = the intersection all three ship.
 --
--- NOTE: this module has NOT yet been validated by a dk0 build (that needs age
--- installed + CommonsBase_Std pulled). Run the get-bundle / run-rule tests above
--- before releasing. lua-ml has no local functions, so a should-be-unique global
--- table holds the helpers.
+-- Validation status: the three bundles are validated (dk0 get-bundle downloaded
+-- the real archives and verified these checksums). The rule below is NOT yet
+-- exercised: a brand-new local rule only becomes runnable after the first
+-- `distribute` build (which needs prepare-version); a bare `run-function` cannot
+-- build it. See AUTHORING.md. lua-ml has no local functions, so a should-be-
+-- unique global table holds the helpers.
+--
+-- The F_Untar version tracks the imported CommonsBase_Std's Extract module
+-- (0.3.0 for CommonsBase_Std 2.6.x). Update it if `dk0 add`/`update` pulls a
+-- CommonsBase_Std whose Extract.F_Untar has a different version.
 
 CommonsSec_Age_Age = {
   id_module = "CommonsSec_Age.Age",
@@ -118,15 +124,15 @@ end
 function CommonsSec_Age_Age.form_values_unix(slot)
   local private = {}
   private[1] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.1.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Age.%s@1.3.1 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Age.%s@1.3.1 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.age_bundle, CommonsSec_Age_Age.asset_for("age", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.age))
   private[2] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.1.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Yubikey.%s@0.5.1 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Yubikey.%s@0.5.1 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.yubikey_bundle, CommonsSec_Age_Age.asset_for("yubikey", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.yubikey))
   private[3] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.1.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Fido2.%s@0.5.0 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Fido2.%s@0.5.0 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.fido2_bundle, CommonsSec_Age_Age.asset_for("fido2", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.fido2))
   local outputs = {
