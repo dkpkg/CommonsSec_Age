@@ -54,8 +54,10 @@ none). Archive internal layouts were inspected (`tar -tf`) to get the declared
 5. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
    (`dksdk-coder/skills/manage-signing-recipients/SKILL.md`), run
    `dksdk-coder/scripts/prepare-dkpkg-version.ps1 -Package CommonsSec_Age -Spdx
-   BSD-3-Clause` **with a hand-installed age** (bootstrap: this package is the
-   source of the pinned age, so its own first prepare-version cannot use it).
+   BSD-3-Clause`. The driver materializes `age` from this very package (step 3
+   above validates that it can), so no separate `age` install is needed. Only if
+   the module is not yet validated, hand-install `age` (winget / scoop / GitHub
+   release) as a fallback so the driver finds it on PATH.
 6. **Release + CI validation**: tag `0.1.0`; validate via
    `dksdk-coder:github-actions-validation`.
 
@@ -65,9 +67,12 @@ Re-pin by re-running `gh api repos/<owner>/<repo>/releases/latest --jq
 '.assets[] | {name, size, digest}'` for each tool, updating the three bundle
 files' versions/paths/checksums and `Age.values.lua`'s `asset_for` + versions.
 
-## Bootstrap note
+## No hard bootstrap cycle
 
-CommonsSec_Age is the source of the pinned age tooling, so a chicken-and-egg
-exists: its own first `prepare-version` (and any package prepared before it ships)
-must use a hand-installed `age` + plugins. Once `CommonsSec_Age@0.1.0` is released,
-`prepare-dkpkg-version.ps1` should prefer the pinned dk bundle.
+There is **no** chicken-and-egg requiring a hand-installed `age`. Building and
+releasing this package uses signify, not age (dk0 does the distribution signing).
+And `prepare-dkpkg-version.ps1` materializes `age` from this package via
+`dk0 run-rule ...Files` even before it is released (local checkout +
+`--trust-local-package`), so its own `prepare-version` can use it. Hand-installing
+`age` is only a fallback for the window where `Age.values.lua` has not yet been
+validated by a dk0 build.

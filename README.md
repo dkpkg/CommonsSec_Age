@@ -8,8 +8,11 @@ per-ABI prebuilt binaries.
 
 It exists to give the dkpkg **signing** flow pinned, reproducible age tooling: the
 maintainer's `prepare-dkpkg-version.ps1` encrypts each package's signing transcript
-to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). Until
-this package ships, that flow uses a hand-installed `age`.
+to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). That
+driver materializes `age` from this package on demand (`dk0 run-rule
+CommonsSec_Age.Age.Files`), even before it is released via a local checkout with
+`--trust-local-package`; a hand-installed `age` is only a fallback for the window
+before the module is validated.
 
 Status: **authored, pending dk0 validation + release.** The three bundles carry
 real, GitHub-API-verified SHA-256/size pins (age 1.3.1, age-plugin-yubikey 0.5.1,
@@ -24,7 +27,7 @@ age-plugin-yubikey 0.5.1 publishes no Linux release binary.
 
 ## Layout (target, mirroring CommonsLang_DotNet)
 
-```
+```text
 dk.u                       # manifest: Overview, License, workspace import of CommonsBase_Std, Apparatus assets
 dk0, dk0.cmd               # launchers (copied from dksdk-coder/ext/dk)
 etc/dk/d/0.1.0.dist.json   # produced by prepare-dkpkg-version (hardware-gated)
@@ -40,6 +43,6 @@ dist/any.u                 # distribution script (dk0-generated value-ids)
 
 ## Consuming
 
-```
+```sh
 dk0 add github-l2 dkpkg/CommonsSec_Age
 ```
