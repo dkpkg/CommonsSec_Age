@@ -1,0 +1,53 @@
+// str4d/age-plugin-yubikey released binaries, per supported ABI.
+//
+// Source: https://github.com/str4d/age-plugin-yubikey/releases/tag/v0.5.1
+// SHA-256 + size are the GitHub release-asset digests.
+// Note: v0.5.1 ships only macOS + Windows (no Linux binary).
+//
+// Test: ./dk0 -I etc/dk/v --trust-local-package CommonsSec_Age --verbose --autofix \
+//         get-bundle CommonsSec_Age.AgePluginYubikey.Bundle@0.5.1 -d target/ykbundle
+{
+  "$schema": "https://diskuv.com/dk/schema/dk-value-1.0.json",
+  "schema_version": { "major": 1, "minor": 0 },
+  "bundles": [
+    {
+      "id": "CommonsSec_Age.AgePluginYubikey.Bundle@0.5.1",
+      "listing": {
+        "origins": [
+          {
+            "name": "github-str4d-age-plugin-yubikey",
+            "mirrors": [
+              "https://github.com/str4d/age-plugin-yubikey/releases/download/v0.5.1"
+            ]
+          }
+        ]
+      },
+      "assets": [
+        {
+          "path": "age-plugin-yubikey-v0.5.1-x86_64-windows.zip",
+          "checksum": {
+            "sha256": "ba00ebd999b928994dc1f1ee0a83562f97b538f8ece75945aa6caf3695bfe3aa"
+          },
+          "size": 1326747,
+          "origin": "github-str4d-age-plugin-yubikey"
+        },
+        {
+          "path": "age-plugin-yubikey-v0.5.1-x86_64-darwin.tar.gz",
+          "checksum": {
+            "sha256": "857a120837f60f5c02018466f57e90718857686b31d56d319ae10c737835b52a"
+          },
+          "size": 1512522,
+          "origin": "github-str4d-age-plugin-yubikey"
+        },
+        {
+          "path": "age-plugin-yubikey-v0.5.1-arm64-darwin.tar.gz",
+          "checksum": {
+            "sha256": "c83f3ec50921778bdaa555ef2d70fbaf32374a8527eeb4f3171d819c29236243"
+          },
+          "size": 1510645,
+          "origin": "github-str4d-age-plugin-yubikey"
+        }
+      ]
+    }
+  ]
+}

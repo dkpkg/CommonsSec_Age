@@ -1,61 +1,69 @@
 # Authoring checklist — CommonsSec_Age
 
-This repo is a **scaffold**. The remaining files carry dk0-generated
-content-addressed value-ids and real per-ABI SHA-256 checksums, so they must be
-produced with dk0 + real release downloads — not hand-written. Template package:
-`Y:\source\CommonsLang_DotNet` (a prebuilt-runtime bundle with a single
-`CommonsBase_Std` dependency). Model: `dksdk-coder/plans/signing/` and the
-`dk-ai:make-dk-package-from-autoconf` / dk0-authoring references.
+The **bundles, module rules, distribution skeleton, and CI are authored**. What
+remains carries dk0-generated content-addressed value-ids or is hardware-gated, so
+it must be produced with dk0 + the maintainer's YubiKeys — not hand-written.
+Template package: `Y:\source\CommonsLang_DotNet` (a prebuilt-runtime bundle with a
+single `CommonsBase_Std` dependency). Model: `dksdk-coder/plans/signing/`.
 
-## Upstreams to pin (author-time)
+## Pinned upstreams (DONE)
 
-Resolve the latest stable release of each and record, per ABI, the archive URL +
-SHA-256 + size:
+Resolved from the GitHub release-asset digests (`gh api .../releases/latest --jq
+'.assets[].digest'`) — real SHA-256 + size, no download needed:
 
-- **age** — github.com/FiloSottile/age releases (per-OS `.tar.gz` / `.zip`).
-- **age-plugin-yubikey** — github.com/str4d/age-plugin-yubikey releases.
-- **age-plugin-fido2-hmac** — github.com/olastor/age-plugin-fido2-hmac releases.
+- **age 1.3.1** — github.com/FiloSottile/age
+- **age-plugin-yubikey 0.5.1** — github.com/str4d/age-plugin-yubikey (no Linux binary)
+- **age-plugin-fido2-hmac 0.5.0** — github.com/olastor/age-plugin-fido2-hmac
 
-`supported_slots()` = the **intersection** of ABIs all three ship. At minimum
-`Release.Windows_x86_64` (the maintainer host). Drop any ABI a plugin does not
-provide rather than faking it (record the drop, per the no-silent-caps rule).
+`supported_slots()` = the intersection all three ship:
+**Windows_x86_64, Darwin_x86_64, Darwin_arm64** (Linux dropped — yubikey ships
+none). Archive internal layouts were inspected (`tar -tf`) to get the declared
+`paths` right.
 
-## Steps
+## Done in this repo
+
+- `etc/dk/v/CommonsSec_Age/{Age,AgePluginYubikey,AgePluginFido2Hmac}.Bundle.values.jsonc`
+  — real per-ABI `{path, checksum.sha256, size, origin}`.
+- `etc/dk/v/CommonsSec_Age/Age.values.lua` — `supported_slots()`, per-slot file
+  lists, `form_values_windows/unix`, `rules.Files`, and the `uirules.Age` runner.
+- `.github/workflows/distribute-0.1.yml` — 3-ABI matrix, `dk-distribution`
+  environment, combine→attest→release.
+- `dist/any.u` — the `run-rule` invocation (object value-ids to be dk0-generated).
+- `dk.u`, `README.md`, `.gitattributes`, `.gitignore`.
+
+## Remaining (dk0 / hardware-gated)
 
 1. **Launchers**: copy `dk0` + `dk0.cmd` from `dksdk-coder/ext/dk` (or a sibling
-   dkpkg package). Copy the `.gitattributes`/`.gitignore` already here.
+   dkpkg package).
 2. **Workspace**: `dk0 add github-l2 dkpkg/CommonsBase_Std` then `dk0 update` to
-   fill `dk.u`'s `## workspace` block and `etc/dk/i/*.values.json`. Do not
-   hand-write hashes.
-3. **Bundles**: author `etc/dk/v/CommonsSec_Age/{Age,AgePluginYubikey,AgePluginFido2Hmac}.Bundle.values.jsonc`
-   mirroring `CommonsLang_DotNet/etc/dk/v/CommonsLang_DotNet/SDK.Bundle.values.jsonc`
-   — `bundles[].id`, `listing.origins[].mirrors` = the release download base, and
-   `assets[]` = per-ABI `{path, checksum.sha256, size, origin}` from the pinned
-   releases.
-4. **Rules**: author `etc/dk/v/CommonsSec_Age/Age.values.lua` mirroring
-   `SDK.values.lua`: `supported_slots()`, per-slot file lists, a `rules.Files`
-   extractor (Windows `get-asset` the zip; Unix `run-function
-   CommonsBase_Std.Extract.F_Untar` the tarball; chmod +x the binaries in a
-   continuation), and `uirules.Age` / `uirules.AgePluginYubikey` /
-   `uirules.AgePluginFido2Hmac` runner rules with a scrubbed env.
-5. **Distribution**: author `dist/any.u` (mirror `CommonsLang_DotNet/dist/any.u`);
-   its `\dk.object(...)` value-ids are produced by dk0 during a build, not by
-   hand.
-6. **CI**: copy `.github/workflows/distribute-0.1.yml` from CommonsLang_DotNet;
-   keep the `dk-distribution` environment, the `distribute_0_1_pubkey/_seckey`
-   secrets, the ABI matrix, and the combine→attest→release job. Add a Windows
-   `short-build-dir: C:\b` only if MAX_PATH bites.
-7. **Local validation (first pass)**: `dk0 get-bundle
-   CommonsSec_Age.Age.Bundle@<ver>`, `dk0 run-rule CommonsSec_Age.Age.Files -d
-   target/age slot=Release.Windows_x86_64`, then run the extracted `age --version`
-   and `age-plugin-yubikey --version`.
-8. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
+   fill `dk.u`'s `## workspace` block and `etc/dk/i/*.values.json`.
+3. **Validate the module (first pass)** — this is where `Age.values.lua` gets
+   proven; expect to adjust it:
+   - `dk0 -I etc/dk/v --trust-local-package CommonsSec_Age get-bundle
+     CommonsSec_Age.Age.Bundle@1.3.1 -d target/agebundle` (repeat for the two
+     plugin bundles);
+   - `dk0 -I etc/dk/v --trust-local-package CommonsSec_Age run-rule
+     CommonsSec_Age.Age.Files@1.3.1 -d target/age slot=Release.Windows_x86_64`,
+     then run `target/age/age/age.exe --version`.
+   - Note: the Darwin binaries extract without +x (reproducible-zip limitation);
+     if `run`/consumers need them executable, add a chmod continuation to
+     `rules.Files` as `SDK.values.lua`'s `workaround_make_dotnet_executable` does.
+     The Windows host (the only slot the signing flow strictly needs) is unaffected.
+4. **Distribution value-ids**: let dk0 record the `\dk.object(...)` lines in
+   `dist/any.u` during the build.
+5. **prepare-version (hardware-gated)**: after provisioning the recovery YubiKeys
    (`dksdk-coder/skills/manage-signing-recipients/SKILL.md`), run
    `dksdk-coder/scripts/prepare-dkpkg-version.ps1 -Package CommonsSec_Age -Spdx
    BSD-3-Clause` **with a hand-installed age** (bootstrap: this package is the
    source of the pinned age, so its own first prepare-version cannot use it).
-9. **Release + CI validation**: tag `0.1.0`; validate via
+6. **Release + CI validation**: tag `0.1.0`; validate via
    `dksdk-coder:github-actions-validation`.
+
+## Refresh (later versions)
+
+Re-pin by re-running `gh api repos/<owner>/<repo>/releases/latest --jq
+'.assets[] | {name, size, digest}'` for each tool, updating the three bundle
+files' versions/paths/checksums and `Age.values.lua`'s `asset_for` + versions.
 
 ## Bootstrap note
 

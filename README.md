@@ -11,9 +11,16 @@ maintainer's `prepare-dkpkg-version.ps1` encrypts each package's signing transcr
 to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). Until
 this package ships, that flow uses a hand-installed `age`.
 
-Status: **scaffold** — the bundle checksums, the `Age.values.lua` rules, the
-distribution script, and the CI workflow are still to be authored/pinned. See
-[AUTHORING.md](AUTHORING.md).
+Status: **authored, pending dk0 validation + release.** The three bundles carry
+real, GitHub-API-verified SHA-256/size pins (age 1.3.1, age-plugin-yubikey 0.5.1,
+age-plugin-fido2-hmac 0.5.0), the `Age.values.lua` rules and the CI workflow are
+written. What remains is dk0-generated / hardware-gated: the workspace import
+(`dk0 add`), the `dist/any.u` object value-ids (dk0 build), and
+`etc/dk/d/0.1.0.dist.json` (prepare-version). See [AUTHORING.md](AUTHORING.md).
+
+Supported ABIs = **Windows_x86_64, Darwin_x86_64, Darwin_arm64** — the
+intersection of what all three tools ship. There is **no Linux build**:
+age-plugin-yubikey 0.5.1 publishes no Linux release binary.
 
 ## Layout (target, mirroring CommonsLang_DotNet)
 

@@ -1,0 +1,52 @@
+// olastor/age-plugin-fido2-hmac released binaries, per supported ABI.
+//
+// Source: https://github.com/olastor/age-plugin-fido2-hmac/releases/tag/v0.5.0
+// SHA-256 + size are the GitHub release-asset digests.
+//
+// Test: ./dk0 -I etc/dk/v --trust-local-package CommonsSec_Age --verbose --autofix \
+//         get-bundle CommonsSec_Age.AgePluginFido2Hmac.Bundle@0.5.0 -d target/f2bundle
+{
+  "$schema": "https://diskuv.com/dk/schema/dk-value-1.0.json",
+  "schema_version": { "major": 1, "minor": 0 },
+  "bundles": [
+    {
+      "id": "CommonsSec_Age.AgePluginFido2Hmac.Bundle@0.5.0",
+      "listing": {
+        "origins": [
+          {
+            "name": "github-olastor-age-plugin-fido2-hmac",
+            "mirrors": [
+              "https://github.com/olastor/age-plugin-fido2-hmac/releases/download/v0.5.0"
+            ]
+          }
+        ]
+      },
+      "assets": [
+        {
+          "path": "age-plugin-fido2-hmac-v0.5.0-windows-amd64.zip",
+          "checksum": {
+            "sha256": "8c8038aa3dbe29f4b9aeb1f489876525dc916b2b83fcc3d457d9883f6a962e74"
+          },
+          "size": 2717480,
+          "origin": "github-olastor-age-plugin-fido2-hmac"
+        },
+        {
+          "path": "age-plugin-fido2-hmac-v0.5.0-darwin-amd64.tar.gz",
+          "checksum": {
+            "sha256": "fa7934dd622c62116683cd10760012a894905c7a01db0659d2e3a60ac37679a7"
+          },
+          "size": 4637236,
+          "origin": "github-olastor-age-plugin-fido2-hmac"
+        },
+        {
+          "path": "age-plugin-fido2-hmac-v0.5.0-darwin-arm64.tar.gz",
+          "checksum": {
+            "sha256": "7cde3e1d8418b218146241e7e68b0d5c2fb3b9dcdb0c7622deb6d9f4417a1245"
+          },
+          "size": 4761388,
+          "origin": "github-olastor-age-plugin-fido2-hmac"
+        }
+      ]
+    }
+  ]
+}
