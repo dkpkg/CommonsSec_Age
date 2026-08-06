@@ -1,0 +1,32 @@
+{
+  "continuations": {
+    "attestation": {
+      "openbsd_signify": {
+        "signature": "untrusted comment: signed by key 3cb00231c468c44d\nRWQ8sAIxxGjETRd7arSw4Utlew5ONNsKm57NtvC3wK7qKYrc9hb7sWPm9Sy/phYbeybCTSDRw441+Fa8BoLf6cgRq3uX5Ykklwc=\n"
+      }
+    },
+    "continuations_to_sign": {
+      "0.2": {
+        "application": { "name": "dk0", "version": "2.4.2+rev-308" },
+        "openbsd_signify": {
+          "public_key": "untrusted comment: CommonsSec_Age-0.2\nRWQD9i+YMo150ZwrPTPJp32/09D+SVdRjPBIUdCYL0GQKpgzPLdoaaYF\n"
+        }
+      },
+      "1.0": {
+        "application": { "name": "dk0", "version": "2.4.2+rev-308" },
+        "openbsd_signify": {
+          "public_key": "untrusted comment: CommonsSec_Age-1.0\nRWQxonYSkjuc9U2npCiN79Yo8alRRaguGCMq5yW6vkSW3j0L/khMO76j\n"
+        }
+      }
+    }
+  },
+  "id": "CommonsSec_Age@0.1.0",
+  "license": { "spdx": "BSD-3-Clause AND Apache-2.0 AND MIT" },
+  "producer": {
+    "application": { "name": "dk0", "version": "2.4.2+rev-308" },
+    "github_slsa_v1_l2": { "repository": "dkpkg/CommonsSec_Age" },
+    "openbsd_signify": {
+      "public_key": "untrusted comment: CommonsSec_Age-0.1\nRWQ8sAIxxGjETdFfIZsoSPtnWKRjW3TDHPj7YwO6lFllcwYYZryAs8Nd\n"
+    }
+  }
+}
