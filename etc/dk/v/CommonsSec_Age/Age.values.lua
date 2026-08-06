@@ -52,9 +52,14 @@ end
 
 -- Per-slot declared output files (must match the real archive contents).
 CommonsSec_Age_Age.paths = {}
+-- Windows extracts each whole .zip, so every extracted file must be declared
+-- here. The Unix side instead selects `unix_paths` through F_Untar, which is why
+-- these two extra age binaries appear only in the Windows list.
 CommonsSec_Age_Age.paths.Windows_x86_64 = {
   "age/age.exe",
   "age/age-keygen.exe",
+  "age/age-inspect.exe",
+  "age/age-plugin-batchpass.exe",
   "age/LICENSE",
   "age-plugin-yubikey/age-plugin-yubikey.exe",
   "age-plugin-fido2-hmac/age-plugin-fido2-hmac.exe",
@@ -105,14 +110,17 @@ function CommonsSec_Age_Age.paths_arr(paths)
   return table.concat(pathsarr, " ")
 end
 
--- Windows: get-asset auto-extracts each tool's .zip into the slot dir.
+-- Windows: get-asset natively extracts each tool's .zip. Each command gets its
+-- OWN -d, because two commands may not share one output path; `-n 1` strips the
+-- archive's leading directory so the final layout is still the single slot dir
+-- of `paths.Windows_x86_64` (age/..., age-plugin-yubikey/..., etc.).
 function CommonsSec_Age_Age.form_values_windows(slot)
   local private = {}
-  private[1] = string.format("get-asset %s -p %s -d ${SLOT.%s}",
+  private[1] = string.format("get-asset %s -p %s -n 1 -d ${SLOT.%s}/age",
     CommonsSec_Age_Age.age_bundle, CommonsSec_Age_Age.asset_for("age", slot), slot)
-  private[2] = string.format("get-asset %s -p %s -d ${SLOT.%s}",
+  private[2] = string.format("get-asset %s -p %s -n 1 -d ${SLOT.%s}/age-plugin-yubikey",
     CommonsSec_Age_Age.yubikey_bundle, CommonsSec_Age_Age.asset_for("yubikey", slot), slot)
-  private[3] = string.format("get-asset %s -p %s -d ${SLOT.%s}",
+  private[3] = string.format("get-asset %s -p %s -n 1 -d ${SLOT.%s}/age-plugin-fido2-hmac",
     CommonsSec_Age_Age.fido2_bundle, CommonsSec_Age_Age.asset_for("fido2", slot), slot)
   local outputs = {
     assets = { { slots = { slot }, paths = CommonsSec_Age_Age.paths.Windows_x86_64 } }
@@ -120,19 +128,22 @@ function CommonsSec_Age_Age.form_values_windows(slot)
   return { private = private }, outputs
 end
 
--- Unix (Darwin): one selective F_Untar per tool into the slot dir.
+-- Unix (Darwin): one selective F_Untar per tool. Each command gets its OWN -d,
+-- because two commands may not share one output path, and `nstrip=1` drops the
+-- archive's leading directory so the final layout is still the single slot dir
+-- of `paths.Darwin`. This mirrors the `-n 1` the Windows branch passes.
 function CommonsSec_Age_Age.form_values_unix(slot)
   local private = {}
   private[1] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Age.%s@1.3.1 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s}/age nstrip=1 modver=CommonsSec_Age.Age.Unix.Age.%s@1.3.1 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.age_bundle, CommonsSec_Age_Age.asset_for("age", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.age))
   private[2] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Yubikey.%s@0.5.1 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s}/age-plugin-yubikey nstrip=1 modver=CommonsSec_Age.Age.Unix.Yubikey.%s@0.5.1 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.yubikey_bundle, CommonsSec_Age_Age.asset_for("yubikey", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.yubikey))
   private[3] = string.format(
-    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s} modver=CommonsSec_Age.Age.Unix.Fido2.%s@0.5.0 tarmodver=%s tarassetpath=%s %s",
+    "run-function CommonsBase_Std.Extract.F_Untar@0.3.0 -d ${SLOT.%s}/age-plugin-fido2-hmac nstrip=1 modver=CommonsSec_Age.Age.Unix.Fido2.%s@0.5.0 tarmodver=%s tarassetpath=%s %s",
     slot, slot, CommonsSec_Age_Age.fido2_bundle, CommonsSec_Age_Age.asset_for("fido2", slot),
     CommonsSec_Age_Age.paths_arr(CommonsSec_Age_Age.unix_paths.fido2))
   local outputs = {
@@ -242,3 +253,5 @@ function uirules.Age(command, request, continue_)
     })
   end
 end
+
+return M
