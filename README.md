@@ -8,7 +8,7 @@ per-ABI prebuilt binaries.
 
 It exists to give the dkpkg **signing** flow pinned, reproducible age tooling: the
 maintainer's `prepare-dkpkg-version.ps1` encrypts each package's signing transcript
-to YubiKey/passkey recovery recipients (see `dksdk-coder/plans/signing/`). That
+to YubiKey/passkey recovery recipients. That
 driver materializes `age` from this package on demand with `dk0 get-asset` (which
 auto-extracts the pinned Windows binaries and works from a local checkout even
 before release -- validated), so no separate `age` install is needed. A
@@ -30,7 +30,7 @@ age-plugin-yubikey 0.5.1 publishes no Linux release binary.
 
 ```text
 dk.u                       # manifest: Overview, License, workspace import of CommonsBase_Std, Apparatus assets
-dk0, dk0.cmd               # launchers (copied from dksdk-coder/ext/dk)
+dk0, dk0.cmd               # dk toolchain launchers
 etc/dk/d/0.1.0.dist.json   # produced by prepare-dkpkg-version (hardware-gated)
 etc/dk/i/*.values.json     # pinned CommonsBase_Std import records
 etc/dk/v/CommonsSec_Age/
