@@ -19,7 +19,7 @@ fetched from each project's official GitHub releases and verified by SHA-256.
 BSD-3-Clause AND Apache-2.0 AND MIT
 
 ## workspace
-  %% actual_version("2.4.2.329")
+  %% actual_version("2.4.3.9")
   'actual_version'
   '2.4.2.308'
 
